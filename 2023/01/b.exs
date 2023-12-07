@@ -5,11 +5,6 @@ defmodule Loader do
 end
 
 defmodule Parser do
-  def _find_digits(line) do
-    Regex.scan(~r/\d/, line)
-      |> Enum.map(fn [char] -> char end)
-  end
-
   def _find_all_digits(line) do
     word_to_digit = %{
       "1" => "1",
@@ -31,13 +26,35 @@ defmodule Parser do
       "eight" => "8",
       "nine" => "9"
     }
-    Regex.scan(~r/\d|one|two|three|four|five|six|seven|eight|nine/, line)
-      |> Enum.map(fn [char] -> char end)
-      |> Enum.map(fn char -> Map.get(word_to_digit, char, char) end)
-    end
+    regexes = [
+      ~r/\d/,
+      ~r/one/,
+      ~r/two/,
+      ~r/three/,
+      ~r/four/,
+      ~r/five/,
+      ~r/six/,
+      ~r/seven/,
+      ~r/eight/,
+      ~r/nine/
+    ]
+
+    result = regexes
+      # find all words individually
+      |> Enum.map(fn regex -> Regex.scan(regex, line, return: :index) end)
+      |> List.flatten()
+      # restore word
+      |> Enum.map(fn {start, length} -> {start, length, String.slice(line, start, length)} end)
+      # convert to number
+      |> Enum.map(fn {start, length, word} -> {start, length, Map.get(word_to_digit, word)} end)
+      # sort by start index
+      |> Enum.sort(fn {start1, _, _}, {start2, _, _} -> start1 < start2 end)
+      |> Enum.map(fn {_, _, digit} -> digit end)
+
+    result
+  end
 
   def parse_line(line) do
-    # digits = _find_digits(line)
     digits = _find_all_digits(line)
     first_digit = List.first(digits)
     last_digit = List.last(digits)
