@@ -52,10 +52,8 @@ defmodule Main do
     min_green = Enum.max(green_cubes)
 
     if min_red <= given_red && min_blue <= given_blue && min_green <= given_green do
-      IO.puts("Game #{game.number} is possible")
       game.number
     else
-      IO.puts("Game #{game.number} is impossible")
       0
     end
   end
